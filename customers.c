@@ -1,6 +1,11 @@
+/* Standard library includes */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <pthread.h>
+
+/* Personal includes */
 #include "customers.h"
 
 #define BUF_SIZE 80
@@ -22,14 +27,28 @@ void build_customer(customer *c, char *line){
   c->priority = atoi(strtok(NULL, "\n"));
 }
 
+void* thread_control(void *ptr){
+  customer *c = (customer*) ptr;
+  usleep(c->arrive * 10000);
+  printf("customer %2d arrives: arrival time (%.2d), service time (%.2d), priority (%2d). \n", c->num, c->arrive, c->service, c->priority);
+
+  return (void*)0;
+}
+
 void process_customers(FILE *fin){
   char buf[BUF_SIZE];
   int i,count;
 
   fgets(buf, BUF_SIZE, fin);
-  for (i = 0, count = atoi(buf) ; i < count; i++){
+  count = atoi(buf);
+  pthread_t threads[count];
+
+  for (i = 0; i < count; i++){
     fgets(buf, BUF_SIZE, fin);
     customer *c = initialize_customer();
     build_customer(c, buf);
+    pthread_create(&threads[i], NULL, thread_control, (void*) c);
   }
+
+  for (i = 0; i < count; i++) pthread_join(threads[i], NULL);
 }
