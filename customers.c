@@ -11,6 +11,7 @@
 
 #define BUF_SIZE 80
 #define BASE_TEN 10
+#define SCALING_FACTOR 10000
 
 customer* initialize_customer(){
   customer *c = (customer*) malloc(sizeof(customer));
@@ -31,7 +32,7 @@ void build_customer(customer *c, char *line){
 
 void* thread_control(void *ptr){
   customer *c = (customer*) ptr;
-  usleep(c->arrive * 10000);
+  usleep(c->arrive * SCALING_FACTOR);
   printf("customer %2d arrives: arrival time (%.2d), service time (%.2d), priority (%2d). \n", c->num, c->arrive, c->service, c->priority);
 
   return (void*)0;
