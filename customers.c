@@ -7,6 +7,7 @@
 
 /* Personal includes */
 #include "customers.h"
+#include "customer_queue.h"
 
 #define BUF_SIZE 80
 #define BASE_TEN 10
