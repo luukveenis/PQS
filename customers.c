@@ -9,6 +9,7 @@
 #include "customers.h"
 
 #define BUF_SIZE 80
+#define BASE_TEN 10
 
 customer* initialize_customer(){
   customer *c = (customer*) malloc(sizeof(customer));
@@ -21,10 +22,10 @@ customer* initialize_customer(){
 }
 
 void build_customer(customer *c, char *line){
-  c->num = atoi(strtok(line, ":"));
-  c->arrive = atoi(strtok(NULL, ","));
-  c->service = atoi(strtok(NULL, ","));
-  c->priority = atoi(strtok(NULL, "\n"));
+  c->num = strtol(strtok(line, ":"), NULL, BASE_TEN);
+  c->arrive = strtol(strtok(NULL, ","), NULL, BASE_TEN);
+  c->service = strtol(strtok(NULL, ","), NULL, BASE_TEN);
+  c->priority = strtol(strtok(NULL, "\n"), NULL, BASE_TEN);
 }
 
 void* thread_control(void *ptr){
@@ -40,7 +41,7 @@ void process_customers(FILE *fin){
   int i,count;
 
   fgets(buf, BUF_SIZE, fin);
-  count = atoi(buf);
+  count = strtol(buf, NULL, BASE_TEN);
   pthread_t threads[count];
 
   for (i = 0; i < count; i++){
