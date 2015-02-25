@@ -1,6 +1,9 @@
+/* Standard library includes */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* Personal includes */
 #include "customers.h"
 
 int main (int argc, char **argv){
