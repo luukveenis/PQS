@@ -23,10 +23,10 @@ customer* initialize_customer(){
 }
 
 void build_customer(customer *c, char *line){
-  c->num = strtol(strtok(line, ":"), NULL, BASE_TEN);
-  c->arrive = strtol(strtok(NULL, ","), NULL, BASE_TEN);
-  c->service = strtol(strtok(NULL, ","), NULL, BASE_TEN);
-  c->priority = strtol(strtok(NULL, "\n"), NULL, BASE_TEN);
+  c->num = (int)strtol(strtok(line, ":"), (char**)NULL, BASE_TEN);
+  c->arrive = (int)strtol(strtok(NULL, ","), (char**)NULL, BASE_TEN);
+  c->service = (int)strtol(strtok(NULL, ","), (char**)NULL, BASE_TEN);
+  c->priority = (int)strtol(strtok(NULL, "\n"), (char**)NULL, BASE_TEN);
 }
 
 void* thread_control(void *ptr){
@@ -42,7 +42,7 @@ void process_customers(FILE *fin){
   int i,count;
 
   fgets(buf, BUF_SIZE, fin);
-  count = strtol(buf, NULL, BASE_TEN);
+  count = (int)strtol(buf, (char**)NULL, BASE_TEN);
   pthread_t threads[count];
 
   for (i = 0; i < count; i++){
