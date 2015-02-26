@@ -131,6 +131,37 @@ void insert_at_head(llist_ref list, node_ptr new_node)
   list->size++;
 }
 
+/* Inserts a node with the given customer at the tail of the list */
+void insert_at_tail(llist_ref list, node_ptr new_node)
+{
+  if (is_empty(list))
+  {
+    list->head = new_node;
+    list->tail = new_node;
+  }
+  else
+  {
+    list->tail->next = new_node;
+    new_node->prev = list->tail;
+    list->tail = new_node;
+  }
+  list->size++;
+}
+
+/* Inserts node new before node old in the list */
+void insert_before(llist_ref list, node_ptr new, node_ptr old)
+{
+  new->next = old;
+  new->prev = old->prev;
+  old->prev = new;
+  if (new->prev == NULL){
+    list->head = new;
+  } else {
+    new->prev->next = new;
+  }
+  list->size++;
+}
+
 /* Simply prints all the elements in the list */
 /* Primarily to assist with development */
 void print_list(llist_ref list)
