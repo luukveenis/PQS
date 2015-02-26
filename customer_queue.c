@@ -94,6 +94,26 @@ node_ptr search(llist_ref list, customer *c)
   return current;
 }
 
+/* Compares two customers:
+ * Result is greater than 0 if c1 is higher priority than c2
+ * Result is less than 0 otherwise */
+int customer_cmp(customer *c1, customer *c2){
+  if (c1->priority > c2->priority){
+    return 1;
+  } else if (c1->priority == c2->priority){
+    if (c1->arrive < c2->arrive){
+      return 1;
+    } else if (c1->arrive == c2->arrive){
+      if (c1->service < c2->service){
+        return 1;
+      } else if (c1->service == c2->service){
+        return c1->num < c2->num ? 1 : -1;
+      }
+    }
+  }
+  return -1;
+}
+
 /* Inserts a node with the given customer at the head of the list */
 void insert_at_head(llist_ref list, node_ptr new_node)
 {
