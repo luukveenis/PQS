@@ -13,6 +13,6 @@ struct llist;
 
 void delete_node(struct llist*, struct node*);
 struct node* search(struct llist*, customer*);
-void insert_at_head(struct llist*, customer*);
+void enqueue(struct llist*, customer*);
 
 #endif

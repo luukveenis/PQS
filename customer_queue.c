@@ -162,6 +162,25 @@ void insert_before(llist_ref list, node_ptr new, node_ptr old)
   list->size++;
 }
 
+/* Insert a customer into the list keeping it sorted by priority */
+void enqueue(llist_ref list, customer *c){
+  node_ptr new_node = create_node(c);
+  node_ptr current;
+
+  if (list->size == 0){
+    insert_at_head(list, new_node);
+  } else {
+    for (current = list->head; current; current = current->next){
+      if (customer_cmp(c, current->cust) > 0){
+        insert_before(list, new_node, current);
+        break;
+      }
+    }
+    /* Add it to the end if it should be last */
+    if (current == NULL) insert_at_tail(list, new_node);
+  }
+}
+
 /* Simply prints all the elements in the list */
 /* Primarily to assist with development */
 void print_list(llist_ref list)
