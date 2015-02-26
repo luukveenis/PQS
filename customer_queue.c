@@ -94,17 +94,13 @@ node_ptr search(llist_ref list, customer *c)
   return current;
 }
 
-/* Inserts a node with the given pid at the head of the list */
-void insert_at_head(llist_ref list, customer *c)
+/* Inserts a node with the given customer at the head of the list */
+void insert_at_head(llist_ref list, node_ptr new_node)
 {
-  node_ptr new_node = create_node(c);
-  if (NULL == list->head)
+  if (is_empty(list))
   {
     list->head = new_node;
-    if (NULL == list->tail)
-    {
-      list->tail = new_node;
-    }
+    list->tail = new_node;
   }
   else
   {
