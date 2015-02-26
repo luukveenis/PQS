@@ -17,6 +17,11 @@ typedef struct llist {
   int size;
 } llist;
 
+/* Convenience function to test emptiness */
+int is_empty(llist_ref list){
+  return list->size == 0 ? 1 : 0;
+}
+
 /* Creates a new node
  * Both back and prev pointers will be NULL */
 node_ptr create_node(customer *c)
@@ -74,7 +79,7 @@ void delete_node(llist_ref list, node_ptr node)
   list->size--;
 }
 
-/* Searches for and returns the node corresponding to pid */
+/* Searches for and returns the node corresponding to customer */
 node_ptr search(llist_ref list, customer *c)
 {
   node_ptr current = list->head;
