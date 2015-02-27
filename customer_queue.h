@@ -22,8 +22,11 @@ typedef struct llist {
   int size;
 } llist;
 
-void delete_node(struct llist*, struct node*);
-struct node* search(struct llist*, customer*);
-void enqueue(struct llist*, customer*);
+int is_empty(llist_ref);
+llist_ref initialize_list();
+void delete_node(llist_ref, node_ptr);
+node_ptr search(llist_ref, customer*);
+void enqueue(llist_ref, customer*);
+void print_list(llist_ref);
 
 #endif
