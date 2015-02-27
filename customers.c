@@ -13,12 +13,14 @@
 #define BASE_TEN 10 /* Used in converting strings to ints */
 #define SCALING_FACTOR 100000 /* Tenths of a second to microseconds */
 
+typedef enum { BUSY, IDLE } status;
+
 /* Global Variables */
 pthread_cond_t idle = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
 llist customer_queue = { NULL, NULL, 0};
-int clerk_idle = 1;
+status clerk_status = IDLE;
 
 /* Initializes a blank customer struct */
 customer* initialize_customer(){
@@ -44,8 +46,8 @@ void build_customer(customer *c, char *line){
 /* Function that controls which customer is served next */
 void request_service(customer *c){
   pthread_mutex_lock(&mutex1);
-  if (clerk_idle && is_empty(&customer_queue)){
-    clerk_idle = 0;
+  if (clerk_status == IDLE && is_empty(&customer_queue)){
+    clerk_status = BUSY;
     pthread_mutex_unlock(&mutex1);
     return;
   }
@@ -54,7 +56,7 @@ void request_service(customer *c){
   enqueue(&customer_queue, c);
   pthread_mutex_unlock(&mutex2);
 
-  while (!clerk_idle || customer_queue.head->cust != c){
+  while (clerk_status == BUSY || customer_queue.head->cust != c){
     printf("Customer %d waiting\n", c->num);
     pthread_cond_wait(&idle, &mutex1);
   }
@@ -66,7 +68,7 @@ void request_service(customer *c){
 
 /* Sets the clerk to idle and wakes up customer threads */
 void release_service(){
-  clerk_idle = 1;
+  clerk_status = IDLE;
   pthread_mutex_unlock(&mutex1);
   pthread_cond_broadcast(&idle);
 }
