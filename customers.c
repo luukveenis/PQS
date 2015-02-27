@@ -13,6 +13,13 @@
 #define BASE_TEN 10 /* Used in converting strings to ints */
 #define SCALING_FACTOR 100000 /* Tenths of a second to microseconds */
 
+/* Global Variables */
+pthread_cond_t idle = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
+llist customer_queue = { NULL, NULL, 0};
+int clerk_idle = 1;
+
 /* Initializes a blank customer struct */
 customer* initialize_customer(){
   customer *c = (customer*) malloc(sizeof(customer));
@@ -34,12 +41,47 @@ void build_customer(customer *c, char *line){
   c->priority = (int)strtol(strtok(NULL, "\n"), (char**)NULL, BASE_TEN);
 }
 
+/* Function that controls which customer is served next */
+void request_service(customer *c){
+  pthread_mutex_lock(&mutex1);
+  if (clerk_idle && is_empty(&customer_queue)){
+    clerk_idle = 0;
+    pthread_mutex_unlock(&mutex1);
+    return;
+  }
+
+  pthread_mutex_lock(&mutex2);
+  enqueue(&customer_queue, c);
+  pthread_mutex_unlock(&mutex2);
+
+  while (!clerk_idle || customer_queue.head->cust != c){
+    printf("Customer %d waiting\n", c->num);
+    pthread_cond_wait(&idle, &mutex1);
+  }
+
+  pthread_mutex_lock(&mutex2);
+  delete_node(&customer_queue, customer_queue.head);
+  pthread_mutex_unlock(&mutex2);
+}
+
+/* Sets the clerk to idle and wakes up customer threads */
+void release_service(){
+  clerk_idle = 1;
+  pthread_mutex_unlock(&mutex1);
+  pthread_cond_broadcast(&idle);
+}
+
 /* Main control function executed by each customer thread */
 void* thread_control(void *ptr){
   customer *c = (customer*) ptr;
   usleep(c->arrive * SCALING_FACTOR);
-  printf("customer %2d arrives: arrival time (%.2d), service time (%.2d), "
+  printf("Customer %2d arrives: arrival time (%.2d), service time (%.2d), "
          "priority (%2d). \n", c->num, c->arrive, c->service, c->priority);
+  request_service(c);
+  printf("Serving customer %d\n", c->num);
+  usleep(c->service * SCALING_FACTOR);
+  release_service();
+  /* printf("Customer %d should have just released service.\n", c->num); */
 
   return (void*)0;
 }
