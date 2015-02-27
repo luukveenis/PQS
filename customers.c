@@ -13,16 +13,19 @@
 #define BASE_TEN 10 /* Used in converting strings to ints */
 #define SCALING_FACTOR 100000 /* Tenths of a second to microseconds */
 
-typedef enum { BUSY, IDLE } status;
+typedef enum { BUSY, IDLE } status_t;
+typedef struct Clerk {
+  status_t status;
+  customer *serving;
+  customer *next;
+} clerk_t;
 
 /* Global Variables */
 pthread_cond_t idle = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
-llist customer_queue = { NULL, NULL, 0};
-status clerk_status = IDLE;
-int serving = -1;
-int next = -1;
+llist customer_queue = { NULL, NULL, 0 };
+clerk_t clerk = { IDLE, NULL, NULL };
 
 /* Initializes a blank customer struct */
 customer* initialize_customer(){
@@ -49,35 +52,35 @@ void build_customer(customer *c, char *line){
 /* Function that controls which customer is served next */
 void request_service(customer *c){
   pthread_mutex_lock(&mutex1);
-  if (clerk_status == IDLE && is_empty(&customer_queue)){
-    clerk_status = BUSY;
-    serving = c->num;
+  if (clerk.status == IDLE && is_empty(&customer_queue)){
+    clerk.status = BUSY;
+    clerk.serving = c;
     pthread_mutex_unlock(&mutex1);
     return;
   }
 
   pthread_mutex_lock(&mutex2);
   enqueue(&customer_queue, c);
-  next = customer_queue.head->cust->num;
+  clerk.next = customer_queue.head->cust;
   pthread_mutex_unlock(&mutex2);
 
-  while (clerk_status == BUSY || next != c->num){
+  while (clerk.status == BUSY || clerk.next->num != c->num){
     if (c->print_wait){
       c->print_wait = FALSE;
-      printf("Customer %2d waits for the finish of customer %2d. \n", c->num, serving);
+      printf("Customer %2d waits for the finish of customer %2d. \n", c->num, clerk.serving->num);
     }
     pthread_cond_wait(&idle, &mutex1);
   }
-  serving = c->num;
+  clerk.serving = c;
   pthread_mutex_lock(&mutex2);
   delete_node(&customer_queue, customer_queue.head);
-  next = customer_queue.head ? customer_queue.head->cust->num : -1;
+  clerk.next = customer_queue.head ? customer_queue.head->cust : NULL;
   pthread_mutex_unlock(&mutex2);
 }
 
 /* Sets the clerk to idle and wakes up customer threads */
 void release_service(){
-  clerk_status = IDLE;
+  clerk.status = IDLE;
   pthread_mutex_unlock(&mutex1);
   pthread_cond_broadcast(&idle);
 }
@@ -89,8 +92,9 @@ void* thread_control(void *ptr){
   printf("Customer %2d arrives: arrival time (%.2f), service time (%.2f), "
          "priority (%2d). \n", c->num, (c->arrive / 10.0), (c->service / 10.0), c->priority);
   request_service(c);
-  printf("Serving customer %d\n", c->num);
+  printf("Serving customer %d\n", clerk.serving->num);
   usleep(c->service * SCALING_FACTOR);
+  printf("Finished customer %d\n", clerk.serving->num);
   free(c);
   release_service();
 
