@@ -31,6 +31,7 @@ customer* initialize_customer(){
   c->arrive = 0;
   c->service = 0;
   c->priority = 0;
+  c->print_wait = TRUE;
 
   return c;
 }
@@ -61,7 +62,10 @@ void request_service(customer *c){
   pthread_mutex_unlock(&mutex2);
 
   while (clerk_status == BUSY || next != c->num){
-    printf("Customer %2d waits for the finish of customer %2d. \n", c->num, serving);
+    if (c->print_wait){
+      c->print_wait = FALSE;
+      printf("Customer %2d waits for the finish of customer %2d. \n", c->num, serving);
+    }
     pthread_cond_wait(&idle, &mutex1);
   }
   serving = c->num;

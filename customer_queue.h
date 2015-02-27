@@ -1,11 +1,13 @@
 #ifndef CUSTOMER_QUEUE_H_
 #define CUSTOMER_QUEUE_H_
 
+typedef enum { FALSE = 0, TRUE = 1 } boolean;
 typedef struct {
   int num;
   int arrive;
   int service;
   int priority;
+  boolean print_wait;
 } customer;
 
 typedef struct node* node_ptr;
