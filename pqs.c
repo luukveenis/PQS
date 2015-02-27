@@ -15,6 +15,7 @@ int main (int argc, char **argv){
   }
   fin = fopen(argv[1], "r");
   process_customers(fin);
+  fclose(fin);
 
   return 0;
 }
