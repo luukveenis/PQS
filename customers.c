@@ -21,6 +21,8 @@ pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
 llist customer_queue = { NULL, NULL, 0};
 status clerk_status = IDLE;
+int serving = -1;
+int next = -1;
 
 /* Initializes a blank customer struct */
 customer* initialize_customer(){
@@ -48,21 +50,24 @@ void request_service(customer *c){
   pthread_mutex_lock(&mutex1);
   if (clerk_status == IDLE && is_empty(&customer_queue)){
     clerk_status = BUSY;
+    serving = c->num;
     pthread_mutex_unlock(&mutex1);
     return;
   }
 
   pthread_mutex_lock(&mutex2);
   enqueue(&customer_queue, c);
+  next = customer_queue.head->cust->num;
   pthread_mutex_unlock(&mutex2);
 
-  while (clerk_status == BUSY || customer_queue.head->cust != c){
-    printf("Customer %d waiting\n", c->num);
+  while (clerk_status == BUSY || next != c->num){
+    printf("Customer %2d waits for the finish of customer %2d. \n", c->num, serving);
     pthread_cond_wait(&idle, &mutex1);
   }
-
+  serving = c->num;
   pthread_mutex_lock(&mutex2);
   delete_node(&customer_queue, customer_queue.head);
+  next = customer_queue.head ? customer_queue.head->cust->num : -1;
   pthread_mutex_unlock(&mutex2);
 }
 
@@ -77,8 +82,8 @@ void release_service(){
 void* thread_control(void *ptr){
   customer *c = (customer*) ptr;
   usleep(c->arrive * SCALING_FACTOR);
-  printf("Customer %2d arrives: arrival time (%.2d), service time (%.2d), "
-         "priority (%2d). \n", c->num, c->arrive, c->service, c->priority);
+  printf("Customer %2d arrives: arrival time (%.2f), service time (%.2f), "
+         "priority (%2d). \n", c->num, (c->arrive / 10.0), (c->service / 10.0), c->priority);
   request_service(c);
   printf("Serving customer %d\n", c->num);
   usleep(c->service * SCALING_FACTOR);
