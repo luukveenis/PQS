@@ -3,20 +3,6 @@
 #include <string.h>
 #include "customer_queue.h"
 
-typedef struct node* node_ptr;
-typedef struct node {
-  node_ptr next;
-  node_ptr prev;
-  customer *cust;
-} node;
-
-typedef struct llist* llist_ref;
-typedef struct llist {
-  node_ptr head;
-  node_ptr tail;
-  int size;
-} llist;
-
 /* Convenience function to test emptiness */
 int is_empty(llist_ref list){
   return list->size == 0 ? 1 : 0;
