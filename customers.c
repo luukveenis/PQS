@@ -11,7 +11,7 @@
 
 #define BUF_SIZE 80 /* Buffer size to read lines from input file */
 #define BASE_TEN 10 /* Used in converting strings to ints */
-#define SCALING_FACTOR 10000 /* Tenths of a second to microseconds */
+#define SCALING_FACTOR 100000 /* Tenths of a second to microseconds */
 
 /* Initializes a blank customer struct */
 customer* initialize_customer(){
