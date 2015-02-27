@@ -91,6 +91,7 @@ void* thread_control(void *ptr){
   request_service(c);
   printf("Serving customer %d\n", c->num);
   usleep(c->service * SCALING_FACTOR);
+  free(c);
   release_service();
 
   return (void*)0;

@@ -26,7 +26,6 @@ void deallocate_node(node_ptr node)
 {
   node->next = NULL;
   node->prev = NULL;
-  free(node->cust);
   node->cust = NULL;
   free(node);
 }
