@@ -81,7 +81,6 @@ void* thread_control(void *ptr){
   printf("Serving customer %d\n", c->num);
   usleep(c->service * SCALING_FACTOR);
   release_service();
-  /* printf("Customer %d should have just released service.\n", c->num); */
 
   return (void*)0;
 }
