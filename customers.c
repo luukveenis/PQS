@@ -1,3 +1,5 @@
+#define _BSD_SOURCE
+
 /* Standard library includes */
 #include <stdio.h>
 #include <stdlib.h>
