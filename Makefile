@@ -4,7 +4,7 @@ CFLAGS = -c -ansi -Wall
 all: pqs
 
 pqs: pqs.o customers.o customer_queue.o
-	$(CC) pqs.o customers.o customer_queue.o -o pqs
+	$(CC) pqs.o customers.o customer_queue.o -o PQS
 
 pqs.o: pqs.c
 	$(CC) $(CFLAGS) pqs.c
