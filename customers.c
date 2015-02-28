@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <pthread.h>
 
@@ -12,6 +13,7 @@
 #define BUF_SIZE 80 /* Buffer size to read lines from input file */
 #define BASE_TEN 10 /* Used in converting strings to ints */
 #define SCALING_FACTOR 100000 /* Tenths of a second to microseconds */
+#define MICRO_FACTOR 1000000.0 /* Micro seconds = 10^6 seconds */
 
 typedef enum { BUSY, IDLE } status_t;
 typedef struct Clerk {
@@ -26,6 +28,7 @@ pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
 llist customer_queue = { NULL, NULL, 0 };
 clerk_t clerk = { IDLE, NULL, NULL };
+struct timeval start, current;
 
 /* Initializes a blank customer struct */
 customer* initialize_customer(){
@@ -67,7 +70,7 @@ void request_service(customer *c){
   while (clerk.status == BUSY || clerk.next != c){
     if (c->print_wait){
       c->print_wait = FALSE;
-      printf("Customer %2d waits for the finish of customer %2d. \n", c->num, clerk.serving->num);
+      printf("Customer %2d waits for the finish of customer %2d.\n", c->num, clerk.serving->num);
     }
     pthread_cond_wait(&idle, &mutex1);
   }
@@ -86,16 +89,23 @@ void release_service(){
   pthread_cond_broadcast(&idle);
 }
 
+float get_time(){
+  gettimeofday(&current, NULL);
+  long int current_micros = (current.tv_sec * MICRO_FACTOR + current.tv_usec);
+  long int start_micros = (start.tv_sec * MICRO_FACTOR + start.tv_usec);
+  return ((current_micros - start_micros) / MICRO_FACTOR );
+}
+
 /* Main control function executed by each customer thread */
 void* thread_control(void *ptr){
   customer *c = (customer*) ptr;
   usleep(c->arrive * SCALING_FACTOR);
   printf("Customer %2d arrives: arrival time (%.2f), service time (%.2f), "
-         "priority (%2d). \n", c->num, (c->arrive / 10.0), (c->service / 10.0), c->priority);
+         "priority (%2d). \n", c->num, get_time(), (c->service / 10.0), c->priority);
   request_service(c);
-  printf("Serving customer %d\n", clerk.serving->num);
+  printf("The clerk starts serving customer %2d at time %.2f.\n", clerk.serving->num, get_time());
   usleep(c->service * SCALING_FACTOR);
-  printf("Finished customer %d\n", clerk.serving->num);
+  printf("The clerk finishes the service to customer %2d at time %.2f.\n", clerk.serving->num, get_time());
   free(c);
   release_service();
 
@@ -107,6 +117,7 @@ void process_customers(FILE *fin){
   char buf[BUF_SIZE];
   int i,count;
 
+  gettimeofday(&start, NULL);
   fgets(buf, BUF_SIZE, fin);
   count = (int)strtol(buf, (char**)NULL, BASE_TEN);
   pthread_t threads[count];
