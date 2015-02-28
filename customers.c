@@ -56,8 +56,8 @@ void build_customer(customer *c, char *line){
 
 /* Function that controls which customer is served next */
 void request_service(customer *c){
+  pthread_mutex_lock(&mutex1);
   if (clerk.status == IDLE && is_empty(&customer_queue)){
-    pthread_mutex_lock(&mutex1);
     clerk.status = BUSY;
     clerk.serving = c;
     pthread_mutex_unlock(&mutex1);
@@ -78,6 +78,7 @@ void request_service(customer *c){
   }
   clerk.serving = c;
   clerk.status = BUSY;
+  pthread_mutex_unlock(&mutex1);
   pthread_mutex_lock(&mutex2);
   delete_node(&customer_queue, customer_queue.head);
   clerk.next = customer_queue.head ? customer_queue.head->cust : NULL;
@@ -86,6 +87,7 @@ void request_service(customer *c){
 
 /* Sets the clerk to idle and wakes up customer threads */
 void release_service(){
+  pthread_mutex_lock(&mutex1);
   clerk.status = IDLE;
   pthread_mutex_unlock(&mutex1);
   pthread_cond_broadcast(&idle);
