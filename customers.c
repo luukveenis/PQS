@@ -51,8 +51,8 @@ void build_customer(customer *c, char *line){
 
 /* Function that controls which customer is served next */
 void request_service(customer *c){
-  pthread_mutex_lock(&mutex1);
   if (clerk.status == IDLE && is_empty(&customer_queue)){
+    pthread_mutex_lock(&mutex1);
     clerk.status = BUSY;
     clerk.serving = c;
     pthread_mutex_unlock(&mutex1);
@@ -64,7 +64,7 @@ void request_service(customer *c){
   clerk.next = customer_queue.head->cust;
   pthread_mutex_unlock(&mutex2);
 
-  while (clerk.status == BUSY || clerk.next->num != c->num){
+  while (clerk.status == BUSY || clerk.next != c){
     if (c->print_wait){
       c->print_wait = FALSE;
       printf("Customer %2d waits for the finish of customer %2d. \n", c->num, clerk.serving->num);
@@ -72,6 +72,7 @@ void request_service(customer *c){
     pthread_cond_wait(&idle, &mutex1);
   }
   clerk.serving = c;
+  clerk.status = BUSY;
   pthread_mutex_lock(&mutex2);
   delete_node(&customer_queue, customer_queue.head);
   clerk.next = customer_queue.head ? customer_queue.head->cust : NULL;
